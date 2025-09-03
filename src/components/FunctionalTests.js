@@ -1,5 +1,15 @@
 import React from 'react';
-import norms from '../norms.json';
+import {
+  calc2x20m,
+  calc6MWT,
+  calcStair,
+  calcHandStrength,
+  calcNHPT,
+  calcPILE,
+  calcFigure8,
+  calcBalance,
+  gradeLabel,
+} from '../utils/calculations';
 
 function FunctionalTests({ formData, setFormData, gender }) {
   const handleChange = (e, section, field) => {
@@ -19,89 +29,25 @@ function FunctionalTests({ formData, setFormData, gender }) {
     });
   };
 
-  const getAgeRange = (age) => {
-    const ageNum = parseInt(age);
-    if (ageNum < 21) return null;
-    if (ageNum <= 25) return '21-25';
-    if (ageNum <= 30) return '26-30';
-    if (ageNum <= 35) return '31-35';
-    if (ageNum <= 40) return '36-40';
-    if (ageNum <= 45) return '41-45';
-    if (ageNum <= 50) return '46-50';
-    if (ageNum <= 55) return '51-55';
-    if (ageNum <= 60) return '56-60';
-    if (ageNum <= 65) return '61-65';
-    if (ageNum <= 70) return '66-70';
-    return null;
-  };
-
   const { age, height, weight } = formData.measurements;
   const tests = formData.tests;
-  const ageRange = age ? getAgeRange(age) : null;
-
-  // Calculations
-  const walkSpeed = tests.walk2x20m.time ? (40 / parseFloat(tests.walk2x20m.time)).toFixed(2) : '';
-  const walkStatus = walkSpeed && norms['2x20m_walk'][gender]
-    ? parseFloat(walkSpeed) < norms['2x20m_walk'][gender].range[0] ? 'Sämre' : parseFloat(walkSpeed) > norms['2x20m_walk'][gender].range[1] ? 'Bättre' : 'Norm'
-    : '';
-
-  const sixMwtPredicted = gender === 'male'
-    ? age && height && weight ? ((7.57 * parseFloat(height)) - (5.02 * parseInt(age)) - (1.76 * parseFloat(weight)) - 309).toFixed(2) : ''
-    : age && height && weight ? ((2.11 * parseFloat(height)) - (5.78 * parseInt(age)) - (2.29 * parseFloat(weight)) + 667).toFixed(2) : '';
-  const sixMwtLower = sixMwtPredicted ? (parseFloat(sixMwtPredicted) - (gender === 'male' ? 153 : 139)).toFixed(2) : '';
-  const sixMwtStatus = tests.sixMwt.distance && sixMwtPredicted
-    ? parseFloat(tests.sixMwt.distance) < parseFloat(sixMwtLower) ? 'Sämre' : parseFloat(tests.sixMwt.distance) > (norms['6MWT'][gender][ageRange]?.range[1] || parseFloat(sixMwtPredicted)) ? 'Bättre' : 'Norm'
-    : '';
-
-  const stairSpeed = tests.stair.time ? ((17 * 0.185) / parseFloat(tests.stair.time)).toFixed(3) : '';
-  const stairStatus = stairSpeed && norms['stair_climb'][gender]
-    ? parseFloat(stairSpeed) < norms['stair_climb'][gender].range[0] ? 'Sämre' : parseFloat(stairSpeed) > norms['stair_climb'][gender].range[1] ? 'Bättre' : 'Norm'
-    : '';
-
-  const handDominantStatus = tests.handStrength.dominantKg && ageRange && norms['hand_strength'][gender][ageRange]
-    ? parseFloat(tests.handStrength.dominantKg) < norms['hand_strength'][gender][ageRange][tests.handStrength.dominant.toLowerCase()][0] ? 'Sämre' : parseFloat(tests.handStrength.dominantKg) > norms['hand_strength'][gender][ageRange][tests.handStrength.dominant.toLowerCase()][1] ? 'Bättre' : 'Norm'
-    : '';
-  const handNonDominantStatus = tests.handStrength.nonDominantKg && ageRange && norms['hand_strength'][gender][ageRange]
-    ? parseFloat(tests.handStrength.nonDominantKg) < norms['hand_strength'][gender][ageRange][tests.handStrength.dominant.toLowerCase() === 'right' ? 'left' : 'right'][0] ? 'Sämre' : parseFloat(tests.handStrength.nonDominantKg) > norms['hand_strength'][gender][ageRange][tests.handStrength.dominant.toLowerCase() === 'right' ? 'left' : 'right'][1] ? 'Bättre' : 'Norm'
-    : '';
-
-  const nhptDominantStatus = tests.nineHolePeg.dominantTime && ageRange && norms['nine_hole_peg'][gender][ageRange]
-    ? parseFloat(tests.nineHolePeg.dominantTime) > norms['nine_hole_peg'][gender][ageRange][tests.handStrength.dominant.toLowerCase()][1] ? 'Sämre' : parseFloat(tests.nineHolePeg.dominantTime) < norms['nine_hole_peg'][gender][ageRange][tests.handStrength.dominant.toLowerCase()][0] ? 'Bättre' : 'Norm'
-    : '';
-  const nhptNonDominantStatus = tests.nineHolePeg.nonDominantTime && ageRange && norms['nine_hole_peg'][gender][ageRange]
-    ? parseFloat(tests.nineHolePeg.nonDominantTime) > norms['nine_hole_peg'][gender][ageRange][tests.handStrength.dominant.toLowerCase() === 'right' ? 'left' : 'right'][1] ? 'Sämre' : parseFloat(tests.nineHolePeg.nonDominantTime) < norms['nine_hole_peg'][gender][ageRange][tests.handStrength.dominant.toLowerCase() === 'right' ? 'left' : 'right'][0] ? 'Bättre' : 'Norm'
-    : '';
-
-  const pileLumbarAdjusted = tests.pileLumbar.weight && weight ? (parseFloat(tests.pileLumbar.weight) / parseFloat(weight)).toFixed(2) : '';
-  const pileLumbarStatus = tests.pileLumbar.weight && norms['pile_lumbar'][gender]
-    ? parseFloat(tests.pileLumbar.weight) < norms['pile_lumbar'][gender].range[0] ? 'Sämre' : parseFloat(tests.pileLumbar.weight) > norms['pile_lumbar'][gender].range[1] ? 'Bättre' : 'Norm'
-    : '';
-  const pileLumbarAdjustedStatus = pileLumbarAdjusted && norms['pile_lumbar'][gender]
-    ? parseFloat(pileLumbarAdjusted) < norms['pile_lumbar'][gender].adjusted[0] ? 'Sämre' : parseFloat(pileLumbarAdjusted) > norms['pile_lumbar'][gender].adjusted[1] ? 'Bättre' : 'Norm'
-    : '';
-
-  const pileCervicalAdjusted = tests.pileCervical.weight && weight ? (parseFloat(tests.pileCervical.weight) / parseFloat(weight)).toFixed(2) : '';
-  const pileCervicalStatus = tests.pileCervical.weight && norms['pile_cervical'][gender]
-    ? parseFloat(tests.pileCervical.weight) < norms['pile_cervical'][gender].range[0] ? 'Sämre' : parseFloat(tests.pileCervical.weight) > norms['pile_cervical'][gender].range[1] ? 'Bättre' : 'Norm'
-    : '';
-  const pileCervicalAdjustedStatus = pileCervicalAdjusted && norms['pile_cervical'][gender]
-    ? parseFloat(pileCervicalAdjusted) < norms['pile_cervical'][gender].adjusted[0] ? 'Sämre' : parseFloat(pileCervicalAdjusted) > norms['pile_cervical'][gender].adjusted[1] ? 'Bättre' : 'Norm'
-    : '';
-
-  const figureEightNormalStatus = tests.figureEight.normalTime && norms['figure_eight_walk'][gender].normal
-    ? (parseFloat(tests.figureEight.normalTime) > norms['figure_eight_walk'][gender].normal.time[1] || parseFloat(tests.figureEight.normalOversteps) > norms['figure_eight_walk'][gender].normal.oversteps) ? 'Sämre' : (parseFloat(tests.figureEight.normalTime) < norms['figure_eight_walk'][gender].normal.time[0] && parseFloat(tests.figureEight.normalOversteps) <= norms['figure_eight_walk'][gender].normal.oversteps) ? 'Bättre' : 'Norm'
-    : '';
-  const figureEightFastStatus = tests.figureEight.fastTime && norms['figure_eight_walk'][gender].fast
-    ? (parseFloat(tests.figureEight.fastTime) > norms['figure_eight_walk'][gender].fast.time[1] || parseFloat(tests.figureEight.fastOversteps) > norms['figure_eight_walk'][gender].fast.oversteps) ? 'Sämre' : (parseFloat(tests.figureEight.fastTime) < norms['figure_eight_walk'][gender].fast.time[0] && parseFloat(tests.figureEight.fastOversteps) <= norms['figure_eight_walk'][gender].fast.oversteps) ? 'Bättre' : 'Norm'
-    : '';
+  // Calculations via shared utils
+  const six = calc6MWT({ gender, age, heightCm: height, weightKg: weight, distanceM: tests.sixMwt.distance });
+  const stair = calcStair({ timeSec: tests.stair.time, gender });
+  const walk = calc2x20m({ timeSec: tests.walk2x20m.time, gender });
+  const hand = calcHandStrength({ gender, age, dominantHand: tests.handStrength.dominant, domKg: tests.handStrength.dominantKg, nonDomKg: tests.handStrength.nonDominantKg });
+  const nhpt = calcNHPT({ gender, age, dominantHand: tests.handStrength.dominant, domTime: tests.nineHolePeg.dominantTime, nonDomTime: tests.nineHolePeg.nonDominantTime });
+  const pile = calcPILE({ gender, lumbarKg: tests.pileLumbar.weight, cervicalKg: tests.pileCervical.weight });
+  const fig8 = calcFigure8({ gender, normalTime: tests.figureEight.normalTime, normalOver: tests.figureEight.normalOversteps, fastTime: tests.figureEight.fastTime, fastOver: tests.figureEight.fastOversteps });
+  const balance = calcBalance({ gender, openSec: tests.oneLegBalance?.open, closedSec: tests.oneLegBalance?.closed });
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Functional Tests</h2>
+      <h2 className="text-xl font-bold mb-4">Funktionella tester</h2>
       <div className="mb-4">
-        <h3 className="font-bold">Measurements (for 6MWT and PILE norms)</h3>
+        <h3 className="font-bold">Mått (för 6MWT och PILE)</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Age (years)</label>
+          <label className="block text-sm font-medium">Ålder (år)</label>
           <input
             type="number"
             name="age"
@@ -112,7 +58,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Height (cm)</label>
+          <label className="block text-sm font-medium">Längd (cm)</label>
           <input
             type="number"
             name="height"
@@ -123,7 +69,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Weight (kg)</label>
+          <label className="block text-sm font-medium">Vikt (kg)</label>
           <input
             type="number"
             name="weight"
@@ -134,55 +80,9 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
       </div>
+      {/* 1) 6MWT */}
       <div className="mb-4">
-        <h3 className="font-bold">2x20m Walk Test ({gender === 'male' ? '8 kg' : '4 kg'})</h3>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Time (s)</label>
-          <input
-            type="number"
-            value={tests.walk2x20m.time}
-            onChange={(e) => handleChange(e, 'walk2x20m', 'time')}
-            className="border p-2 w-full rounded"
-            min="0"
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Final Pulse (bpm)</label>
-          <input
-            type="number"
-            value={tests.walk2x20m.pulse}
-            onChange={(e) => handleChange(e, 'walk2x20m', 'pulse')}
-            className="border p-2 w-full rounded"
-            min="0"
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Borg CR10 Heart/Lungs</label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={tests.walk2x20m.borgHeart}
-            onChange={(e) => handleChange(e, 'walk2x20m', 'borgHeart')}
-            className="w-full"
-          />
-          <span>{tests.walk2x20m.borgHeart}</span>
-        </div>
-        <p>Speed: {walkSpeed} m/s, Status: {walkStatus}</p>
-      </div>
-      <div className="mb-4">
-        <h3 className="font-bold">6-Minute Walk Test</h3>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Walking Aid</label>
-          <select
-            value={tests.sixMwt.aid}
-            onChange={(e) => handleChange(e, 'sixMwt', 'aid')}
-            className="border p-2 w-full rounded"
-          >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
+        <h3 className="font-bold">6-minuters gångtest (6MWT)</h3>
         <div className="mb-2">
           <label className="block text-sm font-medium">Distance (m)</label>
           <input
@@ -193,20 +93,12 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Final Pulse (bpm)</label>
-          <input
-            type="number"
-            value={tests.sixMwt.pulse}
-            onChange={(e) => handleChange(e, 'sixMwt', 'pulse')}
-            className="border p-2 w-full rounded"
-            min="0"
-          />
-        </div>
-        <p>Predicted: {sixMwtPredicted} m, Lower Limit: {sixMwtLower} m, Status: {sixMwtStatus}</p>
+        <p>Predikterat: {six.predicted || '-'} m, Nedre gräns: {six.lower || '-'} m, Status: {six.status || '-'}</p>
+        <p className="text-sm text-gray-600">Förmåga: {six.abilityPct || '-'}%, Nedsättning: {six.impairmentPct !== '' ? `${six.impairmentPct}%` : '-'} ({six.grade !== '' ? gradeLabel(six.grade) : '-'})</p>
       </div>
+      {/* 2) Stair climb */}
       <div className="mb-4">
-        <h3 className="font-bold">Stair Climb (17 steps, 18.5 cm)</h3>
+        <h3 className="font-bold">Trappgång (17 steg, 18,5 cm)</h3>
         <div className="mb-2">
           <label className="block text-sm font-medium">Time (s)</label>
           <input
@@ -217,23 +109,40 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <p>Speed: {stairSpeed} m/s, Status: {stairStatus}</p>
+        <p>Hastighet: {stair.speed || '-'} m/s, Status: {stair.status || '-'}</p>
+        <p className="text-sm text-gray-600">Förväntat intervall: {stair.predictedRange || '-'} m/s, Förmåga: {stair.abilityPct || '-'}%, Nedsättning: {stair.impairmentPct !== '' ? `${stair.impairmentPct}%` : '-'} ({stair.grade !== '' ? gradeLabel(stair.grade) : '-'})</p>
+      </div>
+      {/* 3) 2x20m */}
+      <div className="mb-4">
+        <h3 className="font-bold">2x20 m gångtest ({gender === 'male' ? '8 kg' : '4 kg'})</h3>
+        <div className="mb-2">
+          <label className="block text-sm font-medium">Time (s)</label>
+          <input
+            type="number"
+            value={tests.walk2x20m.time}
+            onChange={(e) => handleChange(e, 'walk2x20m', 'time')}
+            className="border p-2 w-full rounded"
+            min="0"
+          />
+        </div>
+        <p>Hastighet: {walk.speed || '-'} m/s, Status: {walk.status || '-'}</p>
+        <p className="text-sm text-gray-600">Förväntat intervall: {walk.predictedRange || '-'} m/s, Förmåga: {walk.abilityPct || '-'}%, Nedsättning: {walk.impairmentPct !== '' ? `${walk.impairmentPct}%` : '-'} ({walk.grade !== '' ? gradeLabel(walk.grade) : '-'})</p>
       </div>
       <div className="mb-4">
-        <h3 className="font-bold">Hand Strength (Jamar)</h3>
+        <h3 className="font-bold">Handstyrka (Jamar)</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Dominant Hand</label>
+          <label className="block text-sm font-medium">Dominant hand</label>
           <select
             value={tests.handStrength.dominant}
             onChange={(e) => handleChange(e, 'handStrength', 'dominant')}
             className="border p-2 w-full rounded"
           >
-            <option value="Right">Right</option>
-            <option value="Left">Left</option>
+            <option value="Right">Höger</option>
+            <option value="Left">Vänster</option>
           </select>
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Dominant Hand (kg)</label>
+          <label className="block text-sm font-medium">Dominant hand (kg)</label>
           <input
             type="number"
             value={tests.handStrength.dominantKg}
@@ -243,7 +152,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Non-Dominant Hand (kg)</label>
+          <label className="block text-sm font-medium">Icke-dominant hand (kg)</label>
           <input
             type="number"
             value={tests.handStrength.nonDominantKg}
@@ -252,12 +161,13 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <p>Dominant: {handDominantStatus}, Non-Dominant: {handNonDominantStatus}</p>
+        <p>Förväntat intervall: Dom {hand.predictedRange.dominant || '-'} kg, Icke-dom {hand.predictedRange.nonDominant || '-'} kg</p>
+        <p>Förmåga: Dom {hand.abilityPct.dominant || '-'}% ({hand.grade.dominant !== '' ? gradeLabel(hand.grade.dominant) : '-'}), Icke-dom {hand.abilityPct.nonDominant || '-'}% ({hand.grade.nonDominant !== '' ? gradeLabel(hand.grade.nonDominant) : '-'})</p>
       </div>
       <div className="mb-4">
-        <h3 className="font-bold">Nine Hole Peg Test</h3>
+        <h3 className="font-bold">Finmotorik (Nine-Hole Peg Test)</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Dominant Hand (s)</label>
+          <label className="block text-sm font-medium">Dominant hand (s)</label>
           <input
             type="number"
             value={tests.nineHolePeg.dominantTime}
@@ -267,7 +177,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Non-Dominant Hand (s)</label>
+          <label className="block text-sm font-medium">Icke-dominant hand (s)</label>
           <input
             type="number"
             value={tests.nineHolePeg.nonDominantTime}
@@ -276,12 +186,39 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <p>Dominant: {nhptDominantStatus || 'Enter values and age'}, Non-Dominant: {nhptNonDominantStatus || 'Enter values and age'}</p>
+        <p>Förväntat intervall: Dom {nhpt.predictedRange.dominant || '-'} s, Icke-dom {nhpt.predictedRange.nonDominant || '-'} s</p>
+        <p>Förmåga: Dom {nhpt.abilityPct.dominant || '-'}% ({nhpt.grade.dominant !== '' ? gradeLabel(nhpt.grade.dominant) : '-'}), Icke-dom {nhpt.abilityPct.nonDominant || '-'}% ({nhpt.grade.nonDominant !== '' ? gradeLabel(nhpt.grade.nonDominant) : '-'})</p>
+      </div>
+      {/* 6) Balans */}
+      <div className="mb-4">
+        <h3 className="font-bold">Balans (enbensstående)</h3>
+        <div className="mb-2">
+          <label className="block text-sm font-medium">Öppna ögon (sekunder)</label>
+          <input
+            type="number"
+            value={tests.oneLegBalance.open}
+            onChange={(e) => handleChange(e, 'oneLegBalance', 'open')}
+            className="border p-2 w-full rounded"
+            min="0"
+          />
+        </div>
+        <div className="mb-2">
+          <label className="block text-sm font-medium">Stängda ögon (sekunder)</label>
+          <input
+            type="number"
+            value={tests.oneLegBalance.closed}
+            onChange={(e) => handleChange(e, 'oneLegBalance', 'closed')}
+            className="border p-2 w-full rounded"
+            min="0"
+          />
+        </div>
+        <p>Öppna ögon: {balance.open.status || '-'} | Förväntat: {balance.open.predictedRange || '-'} s | Förmåga: {balance.open.abilityPct || '-'}% ({balance.open.grade !== '' ? gradeLabel(balance.open.grade) : '-'})</p>
+        <p>Stängda ögon: {balance.closed.status || '-'} | Förväntat: {balance.closed.predictedRange || '-'} s | Förmåga: {balance.closed.abilityPct || '-'}% ({balance.closed.grade !== '' ? gradeLabel(balance.closed.grade) : '-'})</p>
       </div>
       <div className="mb-4">
-        <h3 className="font-bold">PILE Lumbar</h3>
+        <h3 className="font-bold">PILE lumbal</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Final Weight (kg)</label>
+          <label className="block text-sm font-medium">Slutvikt (kg)</label>
           <input
             type="number"
             value={tests.pileLumbar.weight}
@@ -290,22 +227,13 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Number of Lifts</label>
-          <input
-            type="number"
-            value={tests.pileLumbar.lifts}
-            onChange={(e) => handleChange(e, 'pileLumbar', 'lifts')}
-            className="border p-2 w-full rounded"
-            min="0"
-          />
-        </div>
-        <p>Weight: {pileLumbarStatus}, Adjusted: {pileLumbarAdjusted} kg/kg ({pileLumbarAdjustedStatus})</p>
+        <p>Förväntat intervall: {pile.predictedRange.lumbar || '-'} kg</p>
+        <p>Förmåga: {pile.abilityPct.lumbar || '-'}% ({pile.grade.lumbar !== '' ? gradeLabel(pile.grade.lumbar) : '-'})</p>
       </div>
       <div className="mb-4">
-        <h3 className="font-bold">PILE Cervical</h3>
+        <h3 className="font-bold">PILE cervikal</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Final Weight (kg)</label>
+          <label className="block text-sm font-medium">Slutvikt (kg)</label>
           <input
             type="number"
             value={tests.pileCervical.weight}
@@ -314,22 +242,13 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium">Number of Lifts</label>
-          <input
-            type="number"
-            value={tests.pileCervical.lifts}
-            onChange={(e) => handleChange(e, 'pileCervical', 'lifts')}
-            className="border p-2 w-full rounded"
-            min="0"
-          />
-        </div>
-        <p>Weight: {pileCervicalStatus}, Adjusted: {pileCervicalAdjusted} kg/kg ({pileCervicalAdjustedStatus})</p>
+        <p>Förväntat intervall: {pile.predictedRange.cervical || '-'} kg</p>
+        <p>Förmåga: {pile.abilityPct.cervical || '-'}% ({pile.grade.cervical !== '' ? gradeLabel(pile.grade.cervical) : '-'})</p>
       </div>
       <div className="mb-4">
-        <h3 className="font-bold">Figure-of-8 Walk Test</h3>
+        <h3 className="font-bold">Figur‑8 gångtest</h3>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Normal Pace Time (s)</label>
+          <label className="block text-sm font-medium">Normal takt tid (s)</label>
           <input
             type="number"
             value={tests.figureEight.normalTime}
@@ -339,7 +258,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Normal Pace Oversteps</label>
+          <label className="block text-sm font-medium">Normal takt övertramp</label>
           <input
             type="number"
             value={tests.figureEight.normalOversteps}
@@ -349,7 +268,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Fast Pace Time (s)</label>
+          <label className="block text-sm font-medium">Snabb takt tid (s)</label>
           <input
             type="number"
             value={tests.figureEight.fastTime}
@@ -359,7 +278,7 @@ function FunctionalTests({ formData, setFormData, gender }) {
           />
         </div>
         <div className="mb-2">
-          <label className="block text-sm font-medium">Fast Pace Oversteps</label>
+          <label className="block text-sm font-medium">Snabb takt övertramp</label>
           <input
             type="number"
             value={tests.figureEight.fastOversteps}
@@ -368,7 +287,8 @@ function FunctionalTests({ formData, setFormData, gender }) {
             min="0"
           />
         </div>
-        <p>Normal Pace: {figureEightNormalStatus || 'Enter values'}, Fast Pace: {figureEightFastStatus || 'Enter values'}</p>
+        <p>Normal Pace: {fig8.normal.status || '-'} | Förväntat: {fig8.normal.predictedRange || '-'} s | Förmåga: {fig8.normal.abilityPct || '-'}% ({fig8.normal.grade !== '' ? gradeLabel(fig8.normal.grade) : '-'})</p>
+        <p>Fast Pace: {fig8.fast.status || '-'} | Förväntat: {fig8.fast.predictedRange || '-'} s | Förmåga: {fig8.fast.abilityPct || '-'}% ({fig8.fast.grade !== '' ? gradeLabel(fig8.fast.grade) : '-'})</p>
       </div>
     </div>
   );

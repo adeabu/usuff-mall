@@ -13,7 +13,7 @@
   },
   "stair_climb": {
     "male": { "range": [0.47, 0.53] },
-    "female": { "range": [1.25, 1.57] }
+    "female": { "range": [0.41, 0.45] }
   },
   "hand_strength": {
     "male": {
