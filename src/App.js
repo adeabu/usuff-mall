@@ -40,34 +40,41 @@ function App() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-gray-50">
+    <div className="container">
       {/* Kön */}
-      <div className="p-4 bg-white rounded shadow mb-4">
-        <h2 className="text-xl font-semibold mb-2">Kön</h2>
-        <select
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
-          aria-label="Välj kön"
-        >
-          <option value="">Välj...</option>
-          <option value="male">Man</option>
-          <option value="female">Kvinna</option>
-        </select>
+      <div className="card shadow section">
+        <h2 className="title">Kön</h2>
+        <div className="radio-group" role="radiogroup" aria-label="Välj kön">
+          <label className="radio-label">
+            <input
+              type="radio"
+              name="gender"
+              value="male"
+              checked={gender === 'male'}
+              onChange={(e) => setGender(e.target.value)}
+            />
+            <span>Man</span>
+          </label>
+          <label className="radio-label">
+            <input
+              type="radio"
+              name="gender"
+              value="female"
+              checked={gender === 'female'}
+              onChange={(e) => setGender(e.target.value)}
+            />
+            <span>Kvinna</span>
+          </label>
+        </div>
       </div>
 
       {/* Tester */}
-      <div className="p-4 bg-white rounded shadow mb-4">
+      <div className="section">
         <FunctionalTests formData={formData} setFormData={setFormData} gender={gender} />
       </div>
 
-      <div className="flex justify-end mt-4">
-        <button
-          className="bg-red-500 text-white p-2 rounded text-sm sm:text-lg"
-          onClick={resetData}
-        >
-          Rensa data
-        </button>
+      <div className="btn-row" style={{ marginTop: 16 }}>
+        <button className="btn" style={{ background: '#ef4444', color: '#fff' }} onClick={resetData}>Rensa data</button>
       </div>
     </div>
   );
